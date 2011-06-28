@@ -4,6 +4,7 @@
  * 
  * @author Oleh Hrynkiv in cooperate with SoftJourn
  * @version 
+ 
  */
 class PayController extends Zend_Controller_Action
 {
