@@ -1,4 +1,8 @@
 <?php
+/*
+PayPal monthly payments form
+author: WhiteDemon
+*/
 class Paypal_Form_Monthly extends Zend_Form
 {
 	public function init()
@@ -18,7 +22,6 @@ class Paypal_Form_Monthly extends Zend_Form
 			$payment_type,
 			$submit
 		));
-		
 	}
 }
 ?>
