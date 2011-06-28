@@ -2,7 +2,7 @@
 /**
  * PaypalController
  * 
- * @author
+ * @author Oleh Hrynkiv in cooperate with SoftJourn
  * @version 
  */
 class PayController extends Zend_Controller_Action
@@ -19,7 +19,7 @@ class PayController extends Zend_Controller_Action
 					),
 					'monthly'=>  array(
 						'type'		=> 'big',
-						'disabled'	=> true,
+						'disabled'	=> false,
 						'text'		=> 'Monthly<br>Payment'
 					)
 				)
@@ -45,15 +45,16 @@ class PayController extends Zend_Controller_Action
     	$this->isAutorized();
     	$payment_method = $this->getRequest()->getParam('type');
     	
-    	if($payment_method != 'onetime')
+    	/*if($payment_method != 'onetime')
     	{
     		$this->_helper->Redirector->gotoUrl('pay');
-    	}
+    	}*/
+    	if($payment_method == 'onetime'){
+			$form = new Paypal_Form_Amount();
+			$this->view->form = $form;
+			$this->view->monthly = false;
     	
-    	$form = new Paypal_Form_Amount();
-    	$this->view->form = $form;
-    	
-    	if ($this->getRequest()->isPost())
+			if ($this->getRequest()->isPost())
 			{
 				$params = $this->getRequest()->getParams();
 				if($this->view->form->isValid($params))
@@ -70,11 +71,6 @@ class PayController extends Zend_Controller_Action
 						
 						$amount = $curr_payment_type->price;
 					}
-					
-					/*if ($amount < $this->minMoneyAmount)
-					{
-						$amount = $this->minMoneyAmount;
-					}*/
 					$this->_helper->Redirector->gotoUrl('pay/creditcard/amount/'.$amount.'/paytype/'.$params['payment_type']);
 				}
 				else
@@ -82,9 +78,27 @@ class PayController extends Zend_Controller_Action
 					$this->view->errorElements = $this->view->form->getMessages();
 				}
 			}
+		}elseif($payment_method == 'monthly'){
+			$form = new Paypal_Form_Monthly();
+			$this->view->form = $form;
+			$this->view->monthly = true;
+			if($this->getRequest()->isPost()){
+				$params = $this->getRequest()->getParams();
+				
+				if($this->view->form->isValid($params)){
+					$payment_type_role = new Application_Model_DbTable_PaymentTypeRole;
+					$curr_payment_type = $payment_type_role->getPaymentType($params['payment_type']);
+					$amount = $curr_payment_type->price;
+					
+					
+					$this->_redirect('pay/creditcard/amount/'.$amount.'/paytype/'.$params['payment_type']);
+				}else
+					$this->view->errorElements = $this->view->form->getMessages();
+			}
+		}
     }
     
-    
+	    
     public function creditcardAction()
     {
     	$this->isAutorized();
@@ -118,16 +132,16 @@ class PayController extends Zend_Controller_Action
     {
     	$this->isAutorized();
     	$payment = new Application_Model_Paypal();
-    	if($this->getRequest()->getParam('id') != "")
-			{
-				$this->view->id = $this->getRequest()->getParam('id');
-			}
-			else
-			{
-				$this->view->id = substr($this->getRequest()->getRequestUri(), strrpos($this->getRequest()->getRequestUri(), "/")+1);
-			}
+	if($this->getRequest()->getParam('id') != "")
+        {
+	    $this->view->id = $this->getRequest()->getParam('id');
+    	}
+    	else
+    	{
+    	    $this->view->id = substr($this->getRequest()->getRequestUri(), strrpos($this->getRequest()->getRequestUri(), "/")+1);
+    	} 
     	$details = $payment->db_load($this->view->id);
-			$this->view->details = $payment->isPaymentSuccessful($details['ack']);
+	$this->view->details = $payment->isPaymentSuccessful($details['ack']);
     }
     
     private function isAutorized()
@@ -136,7 +150,7 @@ class PayController extends Zend_Controller_Action
   		if (!$auth->hasIdentity())
   		{
 			$redirect = new Zend_Session_Namespace('sign_in_redirect');
-			$redirect->url = 'http://payments.tenbrain.com';
+			$redirect->url = 'https://beta.tenbrain.com/pay';
   			$this->_helper->Redirector->gotoUrl('account/sign_in');
   		}
     }
