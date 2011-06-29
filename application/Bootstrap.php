@@ -32,7 +32,7 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 							  'bug_compat_warn' => '',
 							  'cache_expire' => '180',
 							  'cache_limiter' => 'nocache',
-							  'cookie_domain' => '.tenbrain.com',
+							  'cookie_domain' => '.tenbrain.murz',
 							  'cookie_httponly' => '',
 							  'cookie_lifetime' => $config['lifetime'],
 							  'cookie_path' => '/',
@@ -100,6 +100,12 @@ class Bootstrap extends Zend_Application_Bootstrap_Bootstrap
 			'controller'	=> 'misc',
 			'action'		=> 'about'
 		)));
+
+		$router->addRoute('blog', new Zend_Controller_Router_Route('blog', array(
+			'controller'	=> 'misc',
+			'action'		=> 'blog'
+		)));
+
 		
 		$router->addRoute('paypal_save', new Zend_Controller_Router_Route(
 			'/pay/details/:id', 
